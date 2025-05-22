@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: video-compressor
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn app:app
+    region: oregon
