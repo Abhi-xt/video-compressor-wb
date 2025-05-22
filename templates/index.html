@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Video Compressor</title>
+</head>
+<body>
+  <h2>Video Compressor</h2>
+  <form id="compressForm">
+    <label>Video HTTPS URL:</label><br>
+    <input type="url" name="video_url" required><br><br>
+
+    <label>Compression Method:</label><br>
+    <select name="method" id="methodSelect">
+      <option value="percentage">Target a file size (Percentage)</option>
+      <option value="size_mb">Target a file size (MB)</option>
+    </select><br><br>
+
+    <div id="percentageInput">
+      <label>Target Size (%):</label>
+      <input type="number" name="value" min="1" max="100" value="50"><br><br>
+    </div>
+
+    <div id="sizeMBInput" style="display: none;">
+      <label>Target Size (MB):</label>
+      <input type="number" name="value_mb" min="1"><br><br>
+    </div>
+
+    <button type="submit">Compress</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const methodSelect = document.getElementById('methodSelect');
+    const percentageInput = document.getElementById('percentageInput');
+    const sizeMBInput = document.getElementById('sizeMBInput');
+
+    methodSelect.addEventListener('change', () => {
+      if (methodSelect.value === 'percentage') {
+        percentageInput.style.display = 'block';
+        sizeMBInput.style.display = 'none';
+      } else {
+        percentageInput.style.display = 'none';
+        sizeMBInput.style.display = 'block';
+      }
+    });
+
+    document.getElementById('compressForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+
+      const payload = {
+        video_url: form.video_url.value,
+        method: form.method.value,
+        value: form.method.value === 'percentage' ? form.value.value : form.value_mb.value,
+      };
+
+      document.getElementById('result').innerText = 'Processing...';
+
+      const res = await fetch('/api/compress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (result.download_url) {
+        document.getElementById('result').innerHTML = 
+          `<a href="${result.download_url}" download>Download Compressed Video</a>`;
+      } else {
+        document.getElementById('result').innerText = 'Error: ' + result.error;
+      }
+    };
+  </script>
+</body>
+</html>
